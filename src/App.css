@@ -626,12 +626,44 @@
 }
 
 /* ========================================
+   Header Actions (tabs + random button)
+   ======================================== */
+.header-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.random-btn {
+  background: #2d6a4f;
+  color: white;
+  border: none;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.random-btn:hover {
+  background: #245a42;
+}
+
+.random-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+/* ========================================
    Navigation Tabs
    ======================================== */
 .nav-tabs {
   display: flex;
   gap: 0.5rem;
-  margin-top: 1rem;
 }
 
 .nav-tab {
@@ -1018,6 +1050,145 @@
 .search-empty p {
   font-size: 1rem;
   margin: 0;
+}
+
+/* ========================================
+   Discover Movies
+   ======================================== */
+.discover-movies {
+  margin-top: 1rem;
+}
+
+.discover-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.discover-header h2 {
+  color: #1a1a2e;
+  margin: 0 0 0.25rem;
+}
+
+.discover-header p {
+  color: #888;
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+}
+
+.discover-btn {
+  background: #4361ee;
+  color: white;
+  border: none;
+  padding: 0.7rem 2rem;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.discover-btn:hover {
+  background: #3a56d4;
+}
+
+.discover-btn:disabled {
+  background: #aaa;
+  cursor: not-allowed;
+}
+
+.discover-results {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.discover-card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.ai-enrichment {
+  margin-top: 0.75rem;
+  border-top: 1px solid #eee;
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.ai-section h4 {
+  margin: 0 0 0.2rem;
+  color: #4361ee;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.ai-section p {
+  margin: 0;
+  color: #555;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.ai-unavailable {
+  color: #999;
+  font-style: italic;
+  font-size: 0.85rem;
+  margin: 0.5rem 0 0;
+}
+
+/* ========================================
+   Review Actions (edit/delete buttons)
+   ======================================== */
+.review-footer-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.25rem;
+}
+
+.review-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.review-edit-btn,
+.review-delete-btn {
+  background: none;
+  border: 1px solid #ddd;
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: #666;
+}
+
+.review-edit-btn:hover {
+  border-color: #4361ee;
+  color: #4361ee;
+}
+
+.review-delete-btn:hover {
+  border-color: #e63946;
+  color: #e63946;
+}
+
+.review-edit-form textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  margin-bottom: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.review-edit-form textarea:focus {
+  outline: none;
+  border-color: #4361ee;
+  box-shadow: 0 0 0 2px rgba(67, 97, 238, 0.15);
 }
 
 /* Responsive */

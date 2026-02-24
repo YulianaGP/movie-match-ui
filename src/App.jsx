@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getMovies } from './services/api';
+import { getMovies, getRandomMovie } from './services/api';
 import { useDebounce } from './hooks/useDebounce';
 import MovieList from './components/MovieList';
 import MovieForm from './components/MovieForm';
@@ -8,21 +8,8 @@ import MovieDetailModal from './components/MovieDetailModal';
 import Pagination from './components/Pagination';
 import Dashboard from './components/Dashboard';
 import SearchMovies from './components/SearchMovies';
+import DiscoverMovies from './components/DiscoverMovies';
 import './App.css';
-
-/**
- * Main application component.
- *
- * WHAT CHANGED:
- * 1. Added tab navigation (Movies | Dashboard)
- * 2. Added useDebounce on the director filter to reduce API calls
- * 3. Dashboard component lazy-loads when tab is selected
- *
- * WHAT'S PRESERVED:
- * - All existing state management for movies
- * - Filter behavior identical to before
- * - Modal behavior identical to before
- */
 
 const ITEMS_PER_PAGE = 10;
 
@@ -42,21 +29,10 @@ function App() {
   const [page, setPage] = useState(1);
   const [selectedMovieId, setSelectedMovieId] = useState(null);
   const [activeTab, setActiveTab] = useState('movies');
+  const [randomLoading, setRandomLoading] = useState(false);
 
-  // Debounce the director filter — waits 300ms after user stops typing
   const debouncedDirector = useDebounce(filters.director, 300);
 
-  /**
-   * Fetch movies from the API with current filters.
-   *
-   * WHY useCallback?
-   * This function is passed as a prop (onMovieCreated, onMovieDeleted, etc.)
-   * and also called inside useEffect. useCallback ensures that the function
-   * reference only changes when its dependencies change, preventing:
-   * 1. Stale closures — always captures the latest filter/page values
-   * 2. Unnecessary re-renders — child components don't re-render if the
-   *    function reference hasn't changed
-   */
   const fetchMovies = useCallback(async () => {
     setLoading(true);
     try {
@@ -80,7 +56,6 @@ function App() {
     }
   }, [filters.genre, filters.minRating, filters.sortBy, filters.order, debouncedDirector, page]);
 
-  // Fetch when filters change (using debounced director)
   useEffect(() => {
     if (activeTab === 'movies') {
       fetchMovies();
@@ -92,31 +67,60 @@ function App() {
     setPage(1);
   };
 
+  const handleRandomMovie = async () => {
+    setRandomLoading(true);
+    try {
+      const result = await getRandomMovie();
+      if (result.success) {
+        setSelectedMovieId(result.data.id);
+      }
+    } catch (err) {
+      console.error('Error fetching random movie:', err);
+    } finally {
+      setRandomLoading(false);
+    }
+  };
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>Movie Match</h1>
         <p>Manage your movie collection</p>
-        <nav className="nav-tabs">
+        <div className="header-actions">
+          <nav className="nav-tabs">
+            <button
+              className={`nav-tab ${activeTab === 'movies' ? 'active' : ''}`}
+              onClick={() => setActiveTab('movies')}
+            >
+              Movies
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'search' ? 'active' : ''}`}
+              onClick={() => setActiveTab('search')}
+            >
+              Search
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'discover' ? 'active' : ''}`}
+              onClick={() => setActiveTab('discover')}
+            >
+              Discover
+            </button>
+            <button
+              className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
+              onClick={() => setActiveTab('dashboard')}
+            >
+              Dashboard
+            </button>
+          </nav>
           <button
-            className={`nav-tab ${activeTab === 'movies' ? 'active' : ''}`}
-            onClick={() => setActiveTab('movies')}
+            className="random-btn"
+            onClick={handleRandomMovie}
+            disabled={randomLoading}
           >
-            Movies
+            {randomLoading ? 'Loading...' : 'Random Movie'}
           </button>
-          <button
-            className={`nav-tab ${activeTab === 'search' ? 'active' : ''}`}
-            onClick={() => setActiveTab('search')}
-          >
-            Search
-          </button>
-          <button
-            className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
-            onClick={() => setActiveTab('dashboard')}
-          >
-            Dashboard
-          </button>
-        </nav>
+        </div>
       </header>
 
       {activeTab === 'movies' && (
@@ -140,6 +144,8 @@ function App() {
       )}
 
       {activeTab === 'search' && <SearchMovies />}
+
+      {activeTab === 'discover' && <DiscoverMovies />}
 
       {activeTab === 'dashboard' && <Dashboard />}
 

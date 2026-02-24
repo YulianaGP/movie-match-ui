@@ -1,14 +1,30 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getMovieById } from '../services/api';
+import { getMovieById, getReviews } from '../services/api';
 import ReviewList from './ReviewList';
 import ReviewForm from './ReviewForm';
 
+/**
+ * Movie detail modal with separated data loading.
+ *
+ * WHAT CHANGED:
+ * Movie data and reviews are now loaded INDEPENDENTLY:
+ * - Movie info: GET /api/movies/:id
+ * - Reviews:    GET /api/movies/:movieId/reviews (standalone endpoint)
+ *
+ * WHY SEPARATE?
+ * 1. The movie info renders instantly — no waiting for reviews
+ * 2. After creating/editing/deleting a review, we only reload reviews
+ *    (not the entire movie + reviews combo)
+ * 3. Opens the door for paginated reviews in the future
+ */
 export default function MovieDetailModal({ movieId, onClose }) {
   const [movie, setMovie] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState([]);
+  const [movieLoading, setMovieLoading] = useState(true);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
 
   const fetchMovie = useCallback(async () => {
-    setLoading(true);
+    setMovieLoading(true);
     try {
       const result = await getMovieById(movieId);
       if (result.success) {
@@ -17,13 +33,29 @@ export default function MovieDetailModal({ movieId, onClose }) {
     } catch (err) {
       console.error('Error fetching movie:', err);
     } finally {
-      setLoading(false);
+      setMovieLoading(false);
     }
   }, [movieId]);
 
+  const fetchReviews = useCallback(async () => {
+    setReviewsLoading(true);
+    try {
+      const result = await getReviews(movieId);
+      if (result.success) {
+        setReviews(result.data);
+      }
+    } catch (err) {
+      console.error('Error fetching reviews:', err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  }, [movieId]);
+
+  // Load movie and reviews in parallel on mount
   useEffect(() => {
     fetchMovie();
-  }, [fetchMovie]);
+    fetchReviews();
+  }, [fetchMovie, fetchReviews]);
 
   useEffect(() => {
     const handleEscape = (e) => {
@@ -44,7 +76,7 @@ export default function MovieDetailModal({ movieId, onClose }) {
           &times;
         </button>
 
-        {loading ? (
+        {movieLoading ? (
           <p className="loading">Loading movie details...</p>
         ) : !movie ? (
           <p className="error">Movie not found</p>
@@ -69,13 +101,21 @@ export default function MovieDetailModal({ movieId, onClose }) {
             <hr className="modal-divider" />
 
             <div className="modal-reviews-section">
-              <h3>Reviews ({movie.reviews?.length || 0})</h3>
-              <ReviewList reviews={movie.reviews || []} />
+              <h3>Reviews ({reviewsLoading ? '...' : reviews.length})</h3>
+              {reviewsLoading ? (
+                <p className="loading">Loading reviews...</p>
+              ) : (
+                <ReviewList
+                  reviews={reviews}
+                  movieId={movie.id}
+                  onReviewChanged={fetchReviews}
+                />
+              )}
             </div>
 
             <hr className="modal-divider" />
 
-            <ReviewForm movieId={movie.id} onReviewCreated={fetchMovie} />
+            <ReviewForm movieId={movie.id} onReviewCreated={fetchReviews} />
           </>
         )}
       </div>

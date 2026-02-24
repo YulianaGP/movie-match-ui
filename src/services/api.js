@@ -107,6 +107,50 @@ export const createReview = async (movieId, reviewData) => {
 };
 
 /**
+ * Fetch a random movie
+ */
+export const getRandomMovie = async () => {
+  const response = await fetch(`${API_URL}/movies/random`);
+  const data = await response.json();
+  return data;
+};
+
+/**
+ * Discover movies with AI-generated descriptions
+ */
+export const getDiscoverMovies = async (count = 3) => {
+  const response = await fetch(`${API_URL}/movies/discover?count=${count}`);
+  const data = await response.json();
+  return data;
+};
+
+/**
+ * Update an existing review
+ */
+export const updateReview = async (movieId, reviewId, reviewData) => {
+  const response = await fetch(`${API_URL}/movies/${movieId}/reviews/${reviewId}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(reviewData),
+  });
+  const data = await response.json();
+  return data;
+};
+
+/**
+ * Delete a review
+ */
+export const deleteReview = async (movieId, reviewId) => {
+  const response = await fetch(`${API_URL}/movies/${movieId}/reviews/${reviewId}`, {
+    method: 'DELETE',
+  });
+  const data = await response.json();
+  return data;
+};
+
+/**
  * Advanced movie search using /movies/search endpoint.
  *
  * WHY A SEPARATE FUNCTION (not reusing getMovies)?
