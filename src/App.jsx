@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getMovies } from './services/api';
 import { useDebounce } from './hooks/useDebounce';
 import MovieList from './components/MovieList';
@@ -7,6 +7,7 @@ import MovieFilters from './components/MovieFilters';
 import MovieDetailModal from './components/MovieDetailModal';
 import Pagination from './components/Pagination';
 import Dashboard from './components/Dashboard';
+import SearchMovies from './components/SearchMovies';
 import './App.css';
 
 /**
@@ -45,12 +46,26 @@ function App() {
   // Debounce the director filter — waits 300ms after user stops typing
   const debouncedDirector = useDebounce(filters.director, 300);
 
-  const fetchMovies = async () => {
+  /**
+   * Fetch movies from the API with current filters.
+   *
+   * WHY useCallback?
+   * This function is passed as a prop (onMovieCreated, onMovieDeleted, etc.)
+   * and also called inside useEffect. useCallback ensures that the function
+   * reference only changes when its dependencies change, preventing:
+   * 1. Stale closures — always captures the latest filter/page values
+   * 2. Unnecessary re-renders — child components don't re-render if the
+   *    function reference hasn't changed
+   */
+  const fetchMovies = useCallback(async () => {
     setLoading(true);
     try {
       const result = await getMovies({
-        ...filters,
+        genre: filters.genre,
+        minRating: filters.minRating,
         director: debouncedDirector,
+        sortBy: filters.sortBy,
+        order: filters.order,
         page,
         limit: ITEMS_PER_PAGE,
       });
@@ -63,14 +78,14 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.genre, filters.minRating, filters.sortBy, filters.order, debouncedDirector, page]);
 
   // Fetch when filters change (using debounced director)
   useEffect(() => {
     if (activeTab === 'movies') {
       fetchMovies();
     }
-  }, [filters.genre, filters.minRating, filters.sortBy, filters.order, debouncedDirector, page, activeTab]);
+  }, [fetchMovies, activeTab]);
 
   const handleFilterChange = (newFilters) => {
     setFilters(newFilters);
@@ -88,6 +103,12 @@ function App() {
             onClick={() => setActiveTab('movies')}
           >
             Movies
+          </button>
+          <button
+            className={`nav-tab ${activeTab === 'search' ? 'active' : ''}`}
+            onClick={() => setActiveTab('search')}
+          >
+            Search
           </button>
           <button
             className={`nav-tab ${activeTab === 'dashboard' ? 'active' : ''}`}
@@ -117,6 +138,8 @@ function App() {
           />
         </main>
       )}
+
+      {activeTab === 'search' && <SearchMovies />}
 
       {activeTab === 'dashboard' && <Dashboard />}
 

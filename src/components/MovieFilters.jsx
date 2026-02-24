@@ -11,11 +11,24 @@ export default function MovieFilters({ filters, onFilterChange }) {
   }, []);
 
   const handleChange = (e) => {
-    onFilterChange({ ...filters, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const updated = { ...filters, [name]: value };
+
+    // When user selects a sortBy field, default to 'desc' if order is empty
+    if (name === 'sortBy' && value && !filters.order) {
+      updated.order = 'desc';
+    }
+
+    // When user clears sortBy, also clear order (it has no effect without sortBy)
+    if (name === 'sortBy' && !value) {
+      updated.order = 'desc';
+    }
+
+    onFilterChange(updated);
   };
 
   const handleClear = () => {
-    onFilterChange({ genre: '', minRating: '', director: '', sortBy: '', order: '' });
+    onFilterChange({ genre: '', minRating: '', director: '', sortBy: '', order: 'desc' });
   };
 
   const hasActiveFilters = filters.genre || filters.minRating || filters.director || filters.sortBy;
@@ -72,10 +85,16 @@ export default function MovieFilters({ filters, onFilterChange }) {
           </select>
         </div>
 
-        {/* Sort order */}
+        {/* Sort order — only works when a sortBy field is selected */}
         <div className="filter-group">
           <label htmlFor="order">Order</label>
-          <select name="order" id="order" value={filters.order} onChange={handleChange}>
+          <select
+            name="order"
+            id="order"
+            value={filters.order}
+            onChange={handleChange}
+            disabled={!filters.sortBy}
+          >
             <option value="desc">Descending</option>
             <option value="asc">Ascending</option>
           </select>

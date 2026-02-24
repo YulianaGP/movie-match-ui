@@ -107,6 +107,38 @@ export const createReview = async (movieId, reviewData) => {
 };
 
 /**
+ * Advanced movie search using /movies/search endpoint.
+ *
+ * WHY A SEPARATE FUNCTION (not reusing getMovies)?
+ * getMovies calls GET /api/movies — the catalog endpoint with simple filters.
+ * searchMovies calls GET /api/movies/search — the advanced search endpoint
+ * that supports title search, director search, year range, rating range,
+ * and returns pagination metadata (total pages, current page).
+ *
+ * Different endpoints, different parameter formats, different responses.
+ */
+export const searchMovies = async (filters = {}) => {
+  const params = new URLSearchParams();
+
+  if (filters.title) params.append('title', filters.title);
+  if (filters.director) params.append('director', filters.director);
+  if (filters.genre) params.append('genre', filters.genre);
+  if (filters.yearMin) params.append('yearMin', filters.yearMin);
+  if (filters.yearMax) params.append('yearMax', filters.yearMax);
+  if (filters.ratingMin) params.append('ratingMin', filters.ratingMin);
+  if (filters.ratingMax) params.append('ratingMax', filters.ratingMax);
+  if (filters.page) params.append('page', filters.page);
+  if (filters.limit) params.append('limit', filters.limit);
+
+  const query = params.toString();
+  const url = `${API_URL}/movies/search${query ? `?${query}` : ''}`;
+
+  const response = await fetch(url);
+  const data = await response.json();
+  return data;
+};
+
+/**
  * Fetch dashboard statistics (aggregations, top rated, etc.)
  */
 export const getDashboardStats = async () => {
